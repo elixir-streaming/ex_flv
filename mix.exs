@@ -1,8 +1,8 @@
 defmodule ExFLV.MixProject do
   use Mix.Project
 
-  @version "0.2.1"
-  @github_url "https://github.com/gBillal/ex_flv"
+  @version "0.3.0"
+  @github_url "https://github.com/elixir-streaming/ex_flv"
 
   def project do
     [
