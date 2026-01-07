@@ -1,7 +1,7 @@
 defmodule ExFLV.Tag.ExAudioDataTest do
   use ExUnit.Case, async: true
 
-  doctest ExFLV.Tag.ExAudioData
+  doctest ExFLV.Tag.{ExAudioData, Serializer}
 
   describe "serialize/1" do
     setup do
@@ -18,30 +18,30 @@ defmodule ExFLV.Tag.ExAudioDataTest do
     end
 
     test "serialize", %{audio_data: audio_data} do
-      serialized = ExFLV.Tag.Serializer.serialize(audio_data)
+      serialized = Serializer.serialize(audio_data)
 
       assert IO.iodata_to_binary(serialized) ==
                <<148, 102, 76, 97, 67, 1, 2, 0, 0, 0, 3>>
     end
 
     test "serialize and parse", %{audio_data: audio_data} do
-      serialized = ExFLV.Tag.Serializer.serialize(audio_data)
+      serialized = Serializer.serialize(audio_data)
       binary = IO.iodata_to_binary(serialized)
 
-      {:ok, parsed} = ExFLV.Tag.ExAudioData.parse(binary)
+      {:ok, parsed} = ExAudioData.parse(binary)
       assert parsed == audio_data
 
-      audio_data = %ExFLV.Tag.ExAudioData{
+      audio_data = %ExAudioData{
         packet_type: :coded_frames,
         fourcc: :mp3,
         data: <<1, 2, 3, 4, 5>>
       }
 
-      serialized = ExFLV.Tag.Serializer.serialize(audio_data)
-      {:ok, parsed} = ExFLV.Tag.ExAudioData.parse(IO.iodata_to_binary(serialized))
+      serialized = Serializer.serialize(audio_data)
+      {:ok, parsed} = ExAudioData.parse(IO.iodata_to_binary(serialized))
       assert parsed == audio_data
 
-      audio_data = %ExFLV.Tag.ExAudioData{
+      audio_data = %ExAudioData{
         packet_type: :multi_channel_config,
         fourcc: :flac,
         channel_order: :custom,
@@ -50,8 +50,8 @@ defmodule ExFLV.Tag.ExAudioDataTest do
         data: <<>>
       }
 
-      serialized = ExFLV.Tag.Serializer.serialize(audio_data)
-      {:ok, parsed} = ExFLV.Tag.ExAudioData.parse(IO.iodata_to_binary(serialized))
+      serialized = Serializer.serialize(audio_data)
+      {:ok, parsed} = ExAudioData.parse(IO.iodata_to_binary(serialized))
       assert parsed == audio_data
     end
   end
