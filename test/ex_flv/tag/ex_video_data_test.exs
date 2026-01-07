@@ -1,7 +1,7 @@
 defmodule ExFLV.Tag.ExVideoDataTest do
   use ExUnit.Case, async: true
 
-  alias ExFLV.Tag.ExVideoData
+  alias ExFLV.Tag.{ExVideoData, Serializer}
 
   doctest ExFLV.Tag.ExVideoData
 
@@ -27,14 +27,14 @@ defmodule ExFLV.Tag.ExVideoDataTest do
     end
 
     test "Serialize", %{video_data: video_data} do
-      serialized = ExFLV.Tag.Serializer.serialize(video_data)
+      serialized = Serializer.serialize(video_data)
 
       assert IO.iodata_to_binary(serialized) ==
                <<161, 97, 118, 99, 49, 255, 255, 246, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255>>
     end
 
     test "Serialize and Parse", %{video_data: video_data} do
-      serialized = ExFLV.Tag.Serializer.serialize(video_data)
+      serialized = Serializer.serialize(video_data)
       binary = IO.iodata_to_binary(serialized)
 
       {:ok, parsed} = ExVideoData.parse(binary)

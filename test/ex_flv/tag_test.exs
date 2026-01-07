@@ -5,8 +5,8 @@ defmodule ExFLV.TagTest do
   doctest ExFLV.Tag.AudioData.AAC
   doctest ExFLV.Tag.VideoData.AVC
 
-  alias ExFLV.Tag.AudioData.AAC
   alias ExFLV.Tag.{AudioData, VideoData}
+  alias ExFLV.Tag.AudioData.AAC
   alias ExFLV.Tag.VideoData.AVC
 
   @audio_data <<0x01, 0x02, 0x03, 0x04, 0x05>>

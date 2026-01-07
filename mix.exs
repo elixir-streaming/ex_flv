@@ -1,14 +1,14 @@
 defmodule ExFLV.MixProject do
   use Mix.Project
 
-  @version "0.2.1"
-  @github_url "https://github.com/gBillal/ex_flv"
+  @version "0.3.0"
+  @github_url "https://github.com/elixir-streaming/ex_flv"
 
   def project do
     [
       app: :ex_flv,
       version: @version,
-      elixir: "~> 1.18",
+      elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: "FLV muxer and demuxer implementation in Elixir",
@@ -29,7 +29,8 @@ defmodule ExFLV.MixProject do
 
   defp deps do
     [
-      {:ex_doc, "~> 0.38", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.38", only: :dev, runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
   end
 
