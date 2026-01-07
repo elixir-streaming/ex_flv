@@ -1,7 +1,9 @@
 defmodule ExFLV.Tag.ExAudioDataTest do
   use ExUnit.Case, async: true
 
-  doctest ExFLV.Tag.{ExAudioData, Serializer}
+  doctest ExFLV.Tag.ExAudioData
+
+  alias ExFLV.Tag.{ExAudioData, Serializer}
 
   describe "serialize/1" do
     setup do
