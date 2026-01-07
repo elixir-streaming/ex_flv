@@ -12,4 +12,33 @@ defmodule ExFLV.Tag.ExVideoDataTest do
       end
     end
   end
+
+  describe "serialize/1" do
+    setup do
+      video_data = %ExVideoData{
+        frame_type: :interframe,
+        packet_type: :coded_frames,
+        fourcc: :avc1,
+        composition_time_offset: -10,
+        data: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 255>>
+      }
+
+      {:ok, video_data: video_data}
+    end
+
+    test "Serialize", %{video_data: video_data} do
+      serialized = ExFLV.Tag.Serializer.serialize(video_data)
+
+      assert IO.iodata_to_binary(serialized) ==
+               <<161, 97, 118, 99, 49, 255, 255, 246, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255>>
+    end
+
+    test "Serialize and Parse", %{video_data: video_data} do
+      serialized = ExFLV.Tag.Serializer.serialize(video_data)
+      binary = IO.iodata_to_binary(serialized)
+
+      {:ok, parsed} = ExVideoData.parse(binary)
+      assert parsed == video_data
+    end
+  end
 end

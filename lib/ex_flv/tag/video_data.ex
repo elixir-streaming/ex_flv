@@ -5,6 +5,8 @@ defmodule ExFLV.Tag.VideoData do
 
   alias ExFLV.Tag.VideoData.AVC
 
+  @type payload :: iodata() | AVC.t()
+
   @type frame_type ::
           :keyframe
           | :interframe
@@ -24,7 +26,7 @@ defmodule ExFLV.Tag.VideoData do
   @type t :: %__MODULE__{
           frame_type: frame_type(),
           codec_id: codec_id(),
-          data: iodata() | AVC.t()
+          data: payload()
         }
 
   defstruct [:frame_type, :codec_id, :data]
@@ -32,7 +34,7 @@ defmodule ExFLV.Tag.VideoData do
   @doc """
   Creates a new `VIDEODATA` tag.
   """
-  @spec new(binary(), codec_id(), frame_type()) :: t()
+  @spec new(payload(), codec_id(), frame_type()) :: t()
   def new(data, codec_id, frame_type) do
     %__MODULE__{
       frame_type: frame_type,
