@@ -51,7 +51,7 @@ defmodule ExFLV.Tag.ExAudioData do
           data: iodata()
         }
 
-  defstruct [:packet_type, :fourcc, :channel_order, :channel_count, :channels, :data]
+  defstruct [:packet_type, :fourcc, :channel_order, :channel_count, :channels, data: <<>>]
 
   @audio_channels %{
     0 => :front_left,
@@ -221,4 +221,78 @@ defmodule ExFLV.Tag.ExAudioData do
   end
 
   defp parse_channels(_, _count, _data), do: {:error, :invalid_data}
+
+  defimpl ExFLV.Tag.Serializer do
+    @compile {:inline, packet_type: 1, fourcc: 1}
+
+    def serialize(audio_data) do
+      channels =
+        case audio_data.packet_type do
+          :multi_channel_config -> serialize_channels(audio_data)
+          _ -> <<>>
+        end
+
+      [
+        <<9::4, packet_type(audio_data.packet_type)::4, fourcc(audio_data.fourcc)::binary-size(4),
+          channels::binary>>,
+        audio_data.data
+      ]
+    end
+
+    defp packet_type(:sequence_start), do: 0
+    defp packet_type(:coded_frames), do: 1
+    defp packet_type(:sequence_end), do: 2
+    defp packet_type(:multi_channel_config), do: 4
+
+    defp fourcc(:ac3), do: "ac-3"
+    defp fourcc(:eac3), do: "ec-3"
+    defp fourcc(:opus), do: "Opus"
+    defp fourcc(:mp3), do: ".mp3"
+    defp fourcc(:flac), do: "fLaC"
+    defp fourcc(:aac), do: "mp4a"
+
+    defp serialize_channels(%{channel_order: :unspecified} = audio_data),
+      do: <<0, audio_data.channel_count::8>>
+
+    defp serialize_channels(%{channel_order: :native} = audio_data) do
+      flags =
+        Enum.reduce(audio_data.channels, 0, fn channel, acc ->
+          Bitwise.bor(acc, Bitwise.bsl(1, channel_id(channel)))
+        end)
+
+      <<1, audio_data.channel_count::8, flags::32>>
+    end
+
+    defp serialize_channels(%{channel_order: :custom} = audio_data) do
+      channels = Enum.map(audio_data.channels, &channel_id/1) |> :binary.list_to_bin()
+      <<2, audio_data.channel_count::8, channels::binary>>
+    end
+
+    defp channel_id(:front_left), do: 0
+    defp channel_id(:front_right), do: 1
+    defp channel_id(:front_center), do: 2
+    defp channel_id(:low_frequency1), do: 3
+    defp channel_id(:back_left), do: 4
+    defp channel_id(:back_right), do: 5
+    defp channel_id(:front_left_center), do: 6
+    defp channel_id(:front_right_center), do: 7
+    defp channel_id(:back_center), do: 8
+    defp channel_id(:side_left), do: 9
+    defp channel_id(:side_right), do: 10
+    defp channel_id(:top_center), do: 11
+    defp channel_id(:top_front_left), do: 12
+    defp channel_id(:top_front_center), do: 13
+    defp channel_id(:top_front_right), do: 14
+    defp channel_id(:top_back_left), do: 15
+    defp channel_id(:top_back_center), do: 16
+    defp channel_id(:top_back_right), do: 17
+    defp channel_id(:low_frequency2), do: 18
+    defp channel_id(:top_side_left), do: 19
+    defp channel_id(:top_side_right), do: 20
+    defp channel_id(:bottom_front_center), do: 21
+    defp channel_id(:bottom_front_left), do: 22
+    defp channel_id(:bottom_front_right), do: 23
+    defp channel_id(:unused), do: 254
+    defp channel_id(:unknown), do: 255
+  end
 end
