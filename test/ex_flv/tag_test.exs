@@ -29,7 +29,7 @@ defmodule ExFLV.TagTest do
     data =
       @video_data
       |> AVC.new(:nalu, 0)
-      |> VideoData.new(:avc, :interframe)
+      |> VideoData.new(:h264, :interframe)
 
     tag = %ExFLV.Tag{type: :video, timestamp: 1_000, data: data}
     serialized = ExFLV.Tag.serialize(tag)

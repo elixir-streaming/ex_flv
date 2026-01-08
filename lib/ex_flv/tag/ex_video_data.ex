@@ -17,17 +17,18 @@ defmodule ExFLV.Tag.ExVideoData do
           | :multi_track
           | :mod_ex
 
-  @type fourcc :: :avc1 | :hvc1 | :vp08 | :vp09 | :av01
+  @type codec_id :: :h264 | :h265 | :vp8 | :vp9 | :av1
 
   @type t :: %__MODULE__{
           frame_type: VideoData.frame_type(),
           packet_type: packet_type(),
           composition_time_offset: integer(),
-          fourcc: fourcc(),
+          codec_id: codec_id(),
           data: iodata()
         }
 
-  defstruct [:frame_type, :packet_type, :fourcc, :composition_time_offset, :data]
+  @enforce_keys [:frame_type, :packet_type, :codec_id]
+  defstruct @enforce_keys ++ [composition_time_offset: 0, data: <<>>]
 
   @doc """
   Parses the binary into an `ExVideoTag` tag.
@@ -37,7 +38,7 @@ defmodule ExFLV.Tag.ExVideoData do
       %ExFLV.Tag.ExVideoData{
         frame_type: :keyframe,
         packet_type: :sequence_start,
-        fourcc: :hvc1,
+        codec_id: :h265,
         composition_time_offset: 0,
         data: <<1, 2, 3, 4, 5>>
       }}
@@ -47,7 +48,7 @@ defmodule ExFLV.Tag.ExVideoData do
       %ExFLV.Tag.ExVideoData{
         frame_type: :interframe,
         packet_type: :coded_frames,
-        fourcc: :avc1,
+        codec_id: :h264,
         composition_time_offset: -10,
         data: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 255>>
       }}
@@ -57,7 +58,7 @@ defmodule ExFLV.Tag.ExVideoData do
       %ExFLV.Tag.ExVideoData{
         frame_type: :interframe,
         packet_type: :coded_frames_x,
-        fourcc: :avc1,
+        codec_id: :h264,
         composition_time_offset: 0,
         data: <<1, 2, 3, 4>>
       }}
@@ -72,13 +73,13 @@ defmodule ExFLV.Tag.ExVideoData do
   def parse(<<1::1, frame_type::3, packet_type::4, fourcc::binary-size(4), data::binary>>)
       when frame_type in 1..5 and packet_type in 0..7 and packet_type != 6 do
     packet_type = packet_type(packet_type)
-    fourcc = String.to_existing_atom(fourcc)
-    {composition_time_offset, data} = parse_body(packet_type, fourcc, data)
+    codec_id = codec_id(fourcc)
+    {composition_time_offset, data} = parse_body(packet_type, codec_id, data)
 
     {:ok,
      %__MODULE__{
        frame_type: frame_type(frame_type),
-       fourcc: fourcc,
+       codec_id: codec_id,
        composition_time_offset: composition_time_offset,
        packet_type: packet_type,
        data: data
@@ -94,7 +95,7 @@ defmodule ExFLV.Tag.ExVideoData do
       %ExFLV.Tag.ExVideoData{
         frame_type: :keyframe,
         packet_type: :sequence_start,
-        fourcc: :hvc1,
+        codec_id: :h265,
         composition_time_offset: 0,
         data: <<1, 2, 3, 4, 5>>
       }
@@ -107,11 +108,17 @@ defmodule ExFLV.Tag.ExVideoData do
     end
   end
 
-  defp parse_body(:coded_frames, fourcc, <<composition_time_offset::24-signed, data::binary>>)
-       when fourcc in [:avc1, :hvc1],
+  defp parse_body(:coded_frames, codec, <<composition_time_offset::24-signed, data::binary>>)
+       when codec in [:h264, :h265],
        do: {composition_time_offset, data}
 
-  defp parse_body(_packet_type, _fourcc, data), do: {0, data}
+  defp parse_body(_packet_type, _codec, data), do: {0, data}
+
+  defp codec_id("avc1"), do: :h264
+  defp codec_id("hvc1"), do: :h265
+  defp codec_id("vp08"), do: :vp8
+  defp codec_id("vp09"), do: :vp9
+  defp codec_id("av01"), do: :av1
 
   defp packet_type(0), do: :sequence_start
   defp packet_type(1), do: :coded_frames
@@ -140,10 +147,16 @@ defmodule ExFLV.Tag.ExVideoData do
 
       [
         <<1::1, frame_type(video_data.frame_type)::3, packet_type(video_data.packet_type)::4,
-          to_string(video_data.fourcc)::binary-size(4), composition_time::binary>>,
+          fourcc(video_data.codec_id)::binary-size(4), composition_time::binary>>,
         video_data.data
       ]
     end
+
+    defp fourcc(:h264), do: "avc1"
+    defp fourcc(:h265), do: "hvc1"
+    defp fourcc(:vp8), do: "vp08"
+    defp fourcc(:vp9), do: "vp09"
+    defp fourcc(:av1), do: "av01"
 
     defp frame_type(:keyframe), do: 1
     defp frame_type(:interframe), do: 2

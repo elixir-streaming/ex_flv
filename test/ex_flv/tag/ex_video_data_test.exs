@@ -18,7 +18,7 @@ defmodule ExFLV.Tag.ExVideoDataTest do
       video_data = %ExVideoData{
         frame_type: :interframe,
         packet_type: :coded_frames,
-        fourcc: :avc1,
+        codec_id: :h264,
         composition_time_offset: -10,
         data: <<0, 0, 0, 0, 0, 0, 0, 0, 0, 255>>
       }

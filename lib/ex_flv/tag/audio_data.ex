@@ -13,8 +13,8 @@ defmodule ExFLV.Tag.AudioData do
           | :nellymoser_16khz_mono
           | :nellymoser_8khz_mono
           | :nellymoser
-          | :g711_alaw
-          | :g711_mulaw
+          | :pcma
+          | :pcmu
           | :reserved
           | :aac
           | :speex
@@ -31,7 +31,8 @@ defmodule ExFLV.Tag.AudioData do
           data: iodata() | AAC.t()
         }
 
-  defstruct [:sound_format, :sound_rate, :sound_size, :sound_type, :data]
+  @enforce_keys [:sound_format, :sound_rate, :sound_size, :sound_type]
+  defstruct @enforce_keys ++ [data: <<>>]
 
   @sound_format_map %{
     0 => :pcm,
@@ -41,8 +42,8 @@ defmodule ExFLV.Tag.AudioData do
     4 => :nellymoser_16khz_mono,
     5 => :nellymoser_8khz_mono,
     6 => :nellymoser,
-    7 => :g711_alaw,
-    8 => :g711_mulaw,
+    7 => :pcma,
+    8 => :pcmu,
     9 => :reserved,
     10 => :aac,
     11 => :speex,
