@@ -91,10 +91,10 @@ defmodule ExFLV.Tag.VideoData do
   defp parse_codec_id(4), do: :vp6
   defp parse_codec_id(5), do: :vp6_alpha
   defp parse_codec_id(6), do: :screen_video_v2
-  defp parse_codec_id(7), do: :avc
+  defp parse_codec_id(7), do: :h264
   defp parse_codec_id(_), do: :unknown
 
-  defp parse_payload(:avc, data), do: AVC.parse(data)
+  defp parse_payload(:h264, data), do: AVC.parse(data)
   defp parse_payload(_, data), do: {:ok, data}
 
   defimpl ExFLV.Tag.Serializer do
@@ -120,7 +120,7 @@ defmodule ExFLV.Tag.VideoData do
     defp serialize_codec_id(:vp6), do: 4
     defp serialize_codec_id(:vp6_alpha), do: 5
     defp serialize_codec_id(:screen_video_v2), do: 6
-    defp serialize_codec_id(:avc), do: 7
+    defp serialize_codec_id(:h264), do: 7
 
     defp serialize_data(%AVC{} = data), do: Serializer.serialize(data)
     defp serialize_data(data), do: data

@@ -35,7 +35,7 @@ defmodule ExFLV.ReaderTest do
 
       assert Enum.all?(tags, fn
                %{type: :audio} = tag -> tag.data.sound_format == :aac
-               %{type: :video} = tag -> tag.data.codec_id == :avc
+               %{type: :video} = tag -> tag.data.codec_id == :h264
              end)
     end
 

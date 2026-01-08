@@ -9,7 +9,7 @@ defmodule ExFLV.Tag.ExAudioDataTest do
     setup do
       audio_data = %ExFLV.Tag.ExAudioData{
         packet_type: :multi_channel_config,
-        fourcc: :flac,
+        codec_id: :flac,
         channel_order: :native,
         channel_count: 2,
         channels: [:front_left, :front_right],
@@ -35,7 +35,7 @@ defmodule ExFLV.Tag.ExAudioDataTest do
 
       audio_data = %ExAudioData{
         packet_type: :coded_frames,
-        fourcc: :mp3,
+        codec_id: :mp3,
         data: <<1, 2, 3, 4, 5>>
       }
 
@@ -45,7 +45,7 @@ defmodule ExFLV.Tag.ExAudioDataTest do
 
       audio_data = %ExAudioData{
         packet_type: :multi_channel_config,
-        fourcc: :flac,
+        codec_id: :flac,
         channel_order: :custom,
         channel_count: 4,
         channels: [:front_left, :front_right, :back_left, :back_right],

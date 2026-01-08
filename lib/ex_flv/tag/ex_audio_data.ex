@@ -3,7 +3,7 @@ defmodule ExFLV.Tag.ExAudioData do
   Module describing an enhanced audio data tag.
   """
 
-  @type fourcc :: :ac3 | :eac3 | :opus | :mp3 | :flac | :aac
+  @type codec_id :: :ac3 | :eac3 | :opus | :mp3 | :flac | :aac
   @type channel_order :: :unspecified | :native | :custom
 
   @type packet_type ::
@@ -44,14 +44,15 @@ defmodule ExFLV.Tag.ExAudioData do
 
   @type t :: %__MODULE__{
           packet_type: packet_type(),
-          fourcc: fourcc(),
+          codec_id: codec_id(),
           channel_order: channel_order() | nil,
           channel_count: non_neg_integer() | nil,
           channels: list(channel()) | nil,
           data: iodata()
         }
 
-  defstruct [:packet_type, :fourcc, :channel_order, :channel_count, :channels, data: <<>>]
+  @enforce_keys [:packet_type, :codec_id]
+  defstruct @enforce_keys ++ [:channel_order, :channel_count, :channels, data: <<>>]
 
   @audio_channels %{
     0 => :front_left,
@@ -91,7 +92,7 @@ defmodule ExFLV.Tag.ExAudioData do
       {:ok,
        %ExFLV.Tag.ExAudioData{
          packet_type: :multi_channel_config,
-         fourcc: :flac,
+         codec_id: :flac,
          channel_order: :native,
          channel_count: 2,
          channels: [:front_left, :front_right],
@@ -102,7 +103,7 @@ defmodule ExFLV.Tag.ExAudioData do
       {:ok,
        %ExFLV.Tag.ExAudioData{
          packet_type: :coded_frames,
-         fourcc: :aac,
+         codec_id: :aac,
          channel_order: nil,
          channel_count: nil,
          channels: nil,
@@ -122,12 +123,12 @@ defmodule ExFLV.Tag.ExAudioData do
       when channel_order in 0..2 do
     channel_order = parse_channel_order(channel_order)
 
-    with {:ok, fourcc} <- parse_fourcc(fourcc),
+    with {:ok, codec_id} <- parse_fourcc(fourcc),
          {:ok, channels, rest} <- parse_channels(channel_order, channel_count, data) do
       {:ok,
        %__MODULE__{
          packet_type: :multi_channel_config,
-         fourcc: fourcc,
+         codec_id: codec_id,
          channel_order: channel_order,
          channel_count: channel_count,
          channels: channels,
@@ -138,11 +139,11 @@ defmodule ExFLV.Tag.ExAudioData do
 
   def parse(<<9::4, packet_type::4, fourcc::binary-size(4), data::binary>>)
       when packet_type in [0, 1, 2, 7] do
-    with {:ok, fourcc} <- parse_fourcc(fourcc) do
+    with {:ok, codec_id} <- parse_fourcc(fourcc) do
       {:ok,
        %__MODULE__{
          packet_type: parse_packet_type(packet_type),
-         fourcc: fourcc,
+         codec_id: codec_id,
          data: data
        }}
     end
@@ -156,7 +157,7 @@ defmodule ExFLV.Tag.ExAudioData do
       iex> ExFLV.Tag.ExAudioData.parse!(<<148, 102, 76, 97, 67, 1, 2, 0, 0, 0, 3>>)
       %ExFLV.Tag.ExAudioData{
         packet_type: :multi_channel_config,
-        fourcc: :flac,
+        codec_id: :flac,
         channel_order: :native,
         channel_count: 2,
         channels: [:front_left, :front_right],
@@ -233,8 +234,8 @@ defmodule ExFLV.Tag.ExAudioData do
         end
 
       [
-        <<9::4, packet_type(audio_data.packet_type)::4, fourcc(audio_data.fourcc)::binary-size(4),
-          channels::binary>>,
+        <<9::4, packet_type(audio_data.packet_type)::4,
+          fourcc(audio_data.codec_id)::binary-size(4), channels::binary>>,
         audio_data.data
       ]
     end
